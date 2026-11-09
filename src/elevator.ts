@@ -45,11 +45,15 @@ export class Elevator {
     this.listeners.forEach((listener) => listener())
   }
 
-  public addFloor(floor: number) {
-    console.log(`Elevator: added floor ${floor}. nextFloors = ${this.nextFloors}`)
+  /** Returns true if the floor was added, false if the request was ignored */
+  public addFloor(floor: number): boolean {
+    if (floor === this.currentFloor && !this.isMoving) return false
+    if (this.nextFloors.includes(floor)) return false
     this.nextFloors.push(floor)
     this.recalculateRoute()
     this.notify()
+    console.log(`Elevator: added floor ${floor}. nextFloors = ${this.nextFloors}`)
+    return true
   }
 
   // Time in ms to travel from the current floor to the next one (speed = floors per second)

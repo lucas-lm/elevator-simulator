@@ -50,8 +50,10 @@ export default function App() {
   }, [floor, moving, nextFloor, travelDuration])
 
   const requestFloor = (target: number) => {
-    addFloor(target)
-    pushLog(`Floor ${target} requested`)
+    // Only log requests the elevator accepted (not duplicates or the current floor)
+    if (addFloor(target)) {
+      pushLog(`Floor ${target} requested`)
+    }
   }
 
   // While moving, render the car at its destination and let a CSS transition
