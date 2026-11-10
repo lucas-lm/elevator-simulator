@@ -1,18 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
 import { useElevator } from './useElevator'
 
-const MIN_FLOOR = 0
-const MAX_FLOOR = 9
-const FLOOR_HEIGHT = 56 // px, keep in sync with --floor-height in CSS
-const SPEED = 1 // floors per second
 const TICK_MS = 2000
 
-const formatSeconds = (ms: number) => `${(ms / 1000).toFixed(1)}s`
+// Building size (floors are numbered from 0)
+const MIN_FLOOR_COUNT = 2 // an elevator needs at least two floors to go anywhere
+const MAX_FLOOR_COUNT = 20 // keeps the building readable on screen
+const DEFAULT_FLOOR_COUNT = 10
 
-const floors = Array.from(
-  { length: MAX_FLOOR - MIN_FLOOR + 1 },
-  (_, i) => MAX_FLOOR - i,
-)
+// Speed in floors per second
+const MIN_SPEED = 1
+const MAX_SPEED = 5
+const SPEED_STEP = 0.5
+const DEFAULT_SPEED = 1
+
+// Floors shrink as the building grows, so it stays about the same height
+const BUILDING_HEIGHT = 560 // px
+const MAX_FLOOR_HEIGHT = 56 // px
+const MIN_FLOOR_HEIGHT = 28 // px
+
+const formatSeconds = (ms: number) => `${(ms / 1000).toFixed(1)}s`
 
 interface LogEntry {
   id: number
@@ -21,10 +28,32 @@ interface LogEntry {
 }
 
 export default function App() {
-  const elevator = useElevator(SPEED, TICK_MS)
-  const { floor, moving, nextFloor, queue, travelDuration, running, setRunning, addFloor } =
-    elevator
+  const elevator = useElevator(DEFAULT_SPEED, TICK_MS)
+  const {
+    floor,
+    moving,
+    nextFloor,
+    queue,
+    speed,
+    travelDuration,
+    running,
+    setRunning,
+    addFloor,
+    setSpeed,
+  } = elevator
+  const [floorCount, setFloorCount] = useState(DEFAULT_FLOOR_COUNT)
   const [log, setLog] = useState<LogEntry[]>([])
+
+  const topFloor = floorCount - 1
+  const floors = Array.from({ length: floorCount }, (_, i) => topFloor - i)
+  const floorHeight = Math.max(
+    MIN_FLOOR_HEIGHT,
+    Math.min(MAX_FLOOR_HEIGHT, Math.floor(BUILDING_HEIGHT / floorCount)),
+  )
+
+  // The building can't shrink below a floor the elevator is on, heading to, or has queued
+  const highestFloorInUse = Math.max(floor, nextFloor ?? 0, ...queue)
+  const minFloorCount = Math.max(MIN_FLOOR_COUNT, highestFloorInUse + 1)
   const logId = useRef(0)
 
   const pushLog = (message: string) => {
@@ -60,7 +89,7 @@ export default function App() {
   // lasting exactly travelDuration animate it there, so it arrives in sync
   // with the core's arrival timer.
   const displayFloor = moving && nextFloor !== null ? nextFloor : floor
-  const carOffset = (displayFloor - MIN_FLOOR) * FLOOR_HEIGHT
+  const carOffset = displayFloor * floorHeight
   const carTransition = moving ? `${travelDuration}ms` : '0ms'
 
   return (
@@ -69,19 +98,19 @@ export default function App() {
         <h1>Elevator Simulator</h1>
         <p className="subtitle">
           Call the elevator to any floor. It checks its queue every{' '}
-          {TICK_MS / 1000} seconds and travels at {SPEED} floor
-          {SPEED === 1 ? '' : 's'} per second.
+          {TICK_MS / 1000} seconds and travels at {speed} floor
+          {speed === 1 ? '' : 's'} per second.
         </p>
       </header>
 
       <main className="layout">
         <section className="building" aria-label="Building">
-          <div className="shaft" style={{ height: floors.length * FLOOR_HEIGHT }}>
+          <div className="shaft" style={{ height: floorCount * floorHeight }}>
             {floors.map((f) => (
               <div
                 key={f}
                 className={`floor ${queue.includes(f) ? 'queued' : ''}`}
-                style={{ height: FLOOR_HEIGHT }}
+                style={{ height: floorHeight }}
               >
                 <span className="floor-label">{f}</span>
               </div>
@@ -91,7 +120,7 @@ export default function App() {
               style={{
                 transform: `translateY(-${carOffset}px)`,
                 transitionDuration: carTransition,
-                height: FLOOR_HEIGHT - 8,
+                height: floorHeight - 8,
               }}
             >
               <span className="doors" />
@@ -143,6 +172,47 @@ export default function App() {
             <button className="secondary" onClick={() => setRunning(!running)}>
               {running ? 'Pause simulation' : 'Resume simulation'}
             </button>
+          </div>
+
+          <div className="card settings">
+            <h2>Settings</h2>
+            <label className="setting">
+              <span className="setting-header">
+                <span>Speed</span>
+                <output>{speed} floors/s</output>
+              </span>
+              <input
+                type="range"
+                min={MIN_SPEED}
+                max={MAX_SPEED}
+                step={SPEED_STEP}
+                value={speed}
+                onChange={(e) => setSpeed(Number(e.target.value))}
+              />
+              {moving && <span className="hint">Applies from the next trip</span>}
+            </label>
+
+            <label className="setting">
+              <span className="setting-header">
+                <span>Floors</span>
+                <output>{floorCount}</output>
+              </span>
+              <input
+                type="range"
+                min={MIN_FLOOR_COUNT}
+                max={MAX_FLOOR_COUNT}
+                step={1}
+                value={floorCount}
+                onChange={(e) =>
+                  setFloorCount(Math.max(minFloorCount, Number(e.target.value)))
+                }
+              />
+              {minFloorCount > MIN_FLOOR_COUNT && (
+                <span className="hint">
+                  At least {minFloorCount} while floor {highestFloorInUse} is in use
+                </span>
+              )}
+            </label>
           </div>
 
           <div className="card">

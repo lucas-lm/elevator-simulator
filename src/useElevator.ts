@@ -6,6 +6,7 @@ export interface ElevatorSnapshot {
   moving: boolean
   nextFloor: number | null
   queue: number[]
+  speed: number
   /** Duration in ms of the current trip (or of the next one, while idle) */
   travelDuration: number
 }
@@ -15,14 +16,15 @@ const takeSnapshot = (elevator: Elevator): ElevatorSnapshot => ({
   moving: elevator.moving,
   nextFloor: elevator.nextFloor,
   queue: [...elevator.queue],
+  speed: elevator.currentSpeed,
   travelDuration: elevator.travelDuration,
 })
 
-/** @param speed elevator speed in floors per second */
-export function useElevator(speed = 1, tickMs = 2000) {
+/** @param initialSpeed elevator speed in floors per second */
+export function useElevator(initialSpeed = 1, tickMs = 2000) {
   const elevatorRef = useRef<Elevator | null>(null)
   if (elevatorRef.current === null) {
-    elevatorRef.current = new Elevator(speed)
+    elevatorRef.current = new Elevator(initialSpeed)
   }
   const elevator = elevatorRef.current
 
@@ -30,7 +32,17 @@ export function useElevator(speed = 1, tickMs = 2000) {
   const [running, setRunning] = useState(true)
 
   useEffect(() => {
-    return elevator.subscribe(() => setSnapshot(takeSnapshot(elevator)))
+    return elevator.subscribe(() =>
+      setSnapshot((prev) => {
+        const next = takeSnapshot(elevator)
+        // The arrival timer was scheduled with the duration at departure, so
+        // keep that value for the whole trip even if the speed changes meanwhile.
+        if (prev.moving && next.moving) {
+          next.travelDuration = prev.travelDuration
+        }
+        return next
+      }),
+    )
   }, [elevator])
 
   useEffect(() => {
@@ -46,5 +58,6 @@ export function useElevator(speed = 1, tickMs = 2000) {
     running,
     setRunning,
     addFloor: (floor: number) => elevator.addFloor(floor),
+    setSpeed: (speed: number) => elevator.setSpeed(speed),
   }
 }

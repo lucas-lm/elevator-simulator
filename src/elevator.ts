@@ -56,6 +56,18 @@ export class Elevator {
     return true
   }
 
+  get currentSpeed(): number {
+    return this.speed
+  }
+
+  public setSpeed(speed: number) {
+    // Changes the speed. A trip already in progress keeps its duration.
+    if (speed <= 0) return
+    this.speed = speed
+    console.log(`Elevator: speed set to ${speed} floors/s`)
+    this.notify()
+  }
+
   // Time in ms to travel from the current floor to the next one (speed = floors per second)
   get travelDuration(): number {
     if (this.nextFloor === null) return 0

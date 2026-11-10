@@ -27,11 +27,14 @@ Then open the URL Vite prints (usually http://localhost:5173).
 
 ### Using the app
 
-- **Call panel**: click a floor button (0–9) to request that floor.
+- **Call panel**: click a floor button to request that floor.
 - **Building**: the car slides to its destination. It turns orange while moving, and floors waiting in the queue are highlighted.
 - **Status**: shows the current floor, whether the elevator is idle, moving or paused, the next floor, and how long the current (or next) trip takes.
 - **Queue** and **Activity**: show the pending floors and a log of requests, departures and arrivals.
 - **Pause / Resume** stops and restarts the 2-second tick.
+- **Settings**:
+  - **Speed** (1–5 floors per second, default 1). A change made during a trip applies from the next trip.
+  - **Floors** (2–20, default 10). The building can't shrink below a floor the elevator is on, heading to, or has queued.
 
 The elevator also logs each step to the browser's devtools console.
 
@@ -48,8 +51,7 @@ src/
 
 ## Customizing
 
-- **Floor range**: change `MIN_FLOOR` and `MAX_FLOOR` at the top of `src/App.tsx`.
-- **Speed and tick interval**: change `SPEED` (floors per second) and `TICK_MS` at the top of `src/App.tsx`.
+- **Limits and defaults**: the slider ranges (`MIN_SPEED`, `MAX_SPEED`, `MIN_FLOOR_COUNT`, `MAX_FLOOR_COUNT`), their defaults and the tick interval (`TICK_MS`) are constants at the top of `src/App.tsx`.
 - **Routing**: `Elevator` takes a routing function as its second argument that receives the list of requested floors and returns them in the order they should be visited. For example, to visit floors in ascending order:
 
   ```ts
