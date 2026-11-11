@@ -36,6 +36,8 @@ export default function App() {
     queue,
     speed,
     travelDuration,
+    queueTotalDistance,
+    queueTotalDuration,
     running,
     setRunning,
     addFloor,
@@ -220,11 +222,25 @@ export default function App() {
             {queue.length === 0 ? (
               <p className="muted">No pending floors</p>
             ) : (
-              <ol className="queue">
-                {queue.map((f, i) => (
-                  <li key={i}>{f}</li>
-                ))}
-              </ol>
+              <>
+                <ol className="queue">
+                  {queue.map((f, i) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ol>
+                <dl className="queue-totals">
+                  <div>
+                    <dt>Total distance</dt>
+                    <dd>
+                      {queueTotalDistance} floor{queueTotalDistance === 1 ? '' : 's'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Total travel time</dt>
+                    <dd>{formatSeconds(queueTotalDuration)}</dd>
+                  </div>
+                </dl>
+              </>
             )}
           </div>
 

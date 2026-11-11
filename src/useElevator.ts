@@ -9,6 +9,10 @@ export interface ElevatorSnapshot {
   speed: number
   /** Duration in ms of the current trip (or of the next one, while idle) */
   travelDuration: number
+  /** Floors to travel to serve the whole queue */
+  queueTotalDistance: number
+  /** Travel time in ms to serve the whole queue */
+  queueTotalDuration: number
 }
 
 const takeSnapshot = (elevator: Elevator): ElevatorSnapshot => ({
@@ -18,6 +22,8 @@ const takeSnapshot = (elevator: Elevator): ElevatorSnapshot => ({
   queue: [...elevator.queue],
   speed: elevator.currentSpeed,
   travelDuration: elevator.travelDuration,
+  queueTotalDistance: elevator.queueTotalDistance,
+  queueTotalDuration: elevator.queueTotalDuration,
 })
 
 /** @param initialSpeed elevator speed in floors per second */

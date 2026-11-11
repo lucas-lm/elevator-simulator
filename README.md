@@ -30,7 +30,8 @@ Then open the URL Vite prints (usually http://localhost:5173).
 - **Call panel**: click a floor button to request that floor.
 - **Building**: the car slides to its destination. It turns orange while moving, and floors waiting in the queue are highlighted.
 - **Status**: shows the current floor, whether the elevator is idle, moving or paused, the next floor, and how long the current (or next) trip takes.
-- **Queue** and **Activity**: show the pending floors and a log of requests, departures and arrivals.
+- **Queue**: shows the pending floors, the total distance to serve them all, and the total travel time (which doesn't include the wait for the next tick between trips).
+- **Activity**: a log of requests, departures and arrivals.
 - **Pause / Resume** stops and restarts the 2-second tick.
 - **Settings**:
   - **Speed** (1–5 floors per second, default 1). A change made during a trip applies from the next trip.

@@ -33,6 +33,47 @@ export class Elevator {
     return this.nextFloors
   }
 
+  
+  get currentSpeed(): number {
+    return this.speed
+  }
+
+  public setSpeed(speed: number) {
+    // Changes the speed. A trip already in progress keeps its duration.
+    if (speed <= 0) return
+    this.speed = speed
+    console.log(`Elevator: speed set to ${speed} floors/s`)
+    this.notify()
+  }
+
+  // Time in ms to travel from the current floor to the next one (speed = floors per second)
+  get travelDuration(): number {
+    if (this.nextFloor === null) return 0
+    const distance = Math.abs(this.currentFloor - this.nextFloor)
+    const msPerFloor = 1000 / this.speed
+    const timeToArrival = distance * msPerFloor
+    return timeToArrival
+  }
+
+  // Floors to travel to serve the whole queue, starting from the current floor
+  get queueTotalDistance(): number {
+    let totalDist = 0
+    for (let i = 0; i < this.nextFloors.length; i++) {
+      const curr = this.nextFloors[i]
+      const prev = i === 0 ? this.currentFloor : this.nextFloors[i-1] 
+      const dist = Math.abs(curr - prev)
+      totalDist += dist
+    }
+
+    return totalDist
+  }
+  
+  // Time in ms to travel the whole queue (same unit as travelDuration)
+  get queueTotalDuration(): number {
+    const msPerFloor = 1000 / this.speed
+    return this.queueTotalDistance * msPerFloor
+  }
+
   // Lets the UI re-render whenever the elevator state changes
   public subscribe(listener: ElevatorListener): () => void {
     this.listeners.add(listener)
@@ -56,26 +97,6 @@ export class Elevator {
     return true
   }
 
-  get currentSpeed(): number {
-    return this.speed
-  }
-
-  public setSpeed(speed: number) {
-    // Changes the speed. A trip already in progress keeps its duration.
-    if (speed <= 0) return
-    this.speed = speed
-    console.log(`Elevator: speed set to ${speed} floors/s`)
-    this.notify()
-  }
-
-  // Time in ms to travel from the current floor to the next one (speed = floors per second)
-  get travelDuration(): number {
-    if (this.nextFloor === null) return 0
-    const distance = Math.abs(this.currentFloor - this.nextFloor)
-    const msPerFloor = 1000 / this.speed
-    const timeToArrival = distance * msPerFloor
-    return timeToArrival
-  }
 
   public goToNextFloor() {
     console.log(`Elevator: requested to go next floor. currentFloor = ${this.currentFloor}. nextFloor = ${this.nextFloor}. travelDuration = ${this.travelDuration}`)
