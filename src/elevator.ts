@@ -8,7 +8,7 @@ export class Elevator {
   private routingCallback: Function
   private listeners: Set<ElevatorListener> = new Set()
 
-  public constructor(speed: number = 1, routingCallback: Function = simple_routing) {
+  public constructor(speed: number = 1, routingCallback: Function = simpleRouting) {
     this.nextFloors = []
     this.currentFloor = 0
     this.isMoving = false
@@ -43,6 +43,13 @@ export class Elevator {
     if (speed <= 0) return
     this.speed = speed
     console.log(`Elevator: speed set to ${speed} floors/s`)
+    this.notify()
+  }
+
+  public setRoutingCallback(routingCallback: Function) {
+    this.routingCallback = routingCallback
+    // Re-route the floors already queued with the new strategy
+    this.recalculateRoute()
     this.notify()
   }
 
@@ -117,10 +124,25 @@ export class Elevator {
 
   private recalculateRoute() {
     console.log(`Elevator: recalculating route with ${this.routingCallback.name}`)
+    if (this.isMoving) {
+      // The trip in progress can't change destination: its arrival is already
+      // scheduled, so only reorder the floors after it.
+      const [destination, ...rest] = this.nextFloors
+      this.nextFloors = [destination, ...this.routingCallback(rest)]
+      return
+    }
     this.nextFloors = this.routingCallback(this.nextFloors)
   }
 }
 
-export function simple_routing(floors: number[]) {
+export function simpleRouting(floors: number[]) {
   return floors
+}
+
+export function ascendingSortRouting(floors: number[]) {
+  return [...floors].sort((a, b) => a - b)
+}
+
+export function descendingSortRouting(floors: number[]) {
+  return [...floors].sort((a, b) => b - a)
 }

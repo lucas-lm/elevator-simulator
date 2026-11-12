@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { useElevator } from './useElevator'
+import { ascendingSortRouting, descendingSortRouting, simpleRouting } from './elevator'
 
 const TICK_MS = 2000
+
+// Routing strategies available in the selector (the first one is the Elevator's default)
+const ROUTING_STRATEGIES = {
+  simple: { label: 'Request order', routing: simpleRouting },
+  ascending: { label: 'Lowest floor first', routing: ascendingSortRouting },
+  descending: { label: 'Highest floor first', routing: descendingSortRouting },
+}
+type RoutingKey = keyof typeof ROUTING_STRATEGIES
 
 // Building size (floors are numbered from 0)
 const MIN_FLOOR_COUNT = 2 // an elevator needs at least two floors to go anywhere
@@ -42,8 +51,10 @@ export default function App() {
     setRunning,
     addFloor,
     setSpeed,
+    setRouting,
   } = elevator
   const [floorCount, setFloorCount] = useState(DEFAULT_FLOOR_COUNT)
+  const [routingKey, setRoutingKey] = useState<RoutingKey>('simple')
   const [log, setLog] = useState<LogEntry[]>([])
 
   const topFloor = floorCount - 1
@@ -178,6 +189,30 @@ export default function App() {
 
           <div className="card settings">
             <h2>Settings</h2>
+            <label className="setting">
+              <span className="setting-header">
+                <span>Routing strategy</span>
+              </span>
+              <select
+                value={routingKey}
+                onChange={(e) => {
+                  const key = e.target.value as RoutingKey
+                  setRoutingKey(key)
+                  setRouting(ROUTING_STRATEGIES[key].routing)
+                  pushLog(`Routing strategy set to "${ROUTING_STRATEGIES[key].label}"`)
+                }}
+              >
+                {Object.entries(ROUTING_STRATEGIES).map(([key, { label }]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              {moving && queue.length > 1 && (
+                <span className="hint">The current trip keeps its destination</span>
+              )}
+            </label>
+
             <label className="setting">
               <span className="setting-header">
                 <span>Speed</span>

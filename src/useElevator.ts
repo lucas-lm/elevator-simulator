@@ -65,5 +65,7 @@ export function useElevator(initialSpeed = 1, tickMs = 2000) {
     setRunning,
     addFloor: (floor: number) => elevator.addFloor(floor),
     setSpeed: (speed: number) => elevator.setSpeed(speed),
+    setRouting: (routing: (floors: number[]) => number[]) =>
+      elevator.setRoutingCallback(routing),
   }
 }
