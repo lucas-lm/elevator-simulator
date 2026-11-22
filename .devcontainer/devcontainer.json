@@ -1,0 +1,19 @@
+{
+  "name": "Elevator Simulator",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "workspaceFolder": "/workspace",
+
+  "mounts": [
+    "source=elevator-simulator-node_modules,target=/workspace/node_modules,type=volume"
+  ],
+
+  "remoteUser": "node",
+  "postCreateCommand": "sudo chown node:node node_modules && pnpm install --frozen-lockfile",
+
+  "forwardPorts": [5173]
+}
